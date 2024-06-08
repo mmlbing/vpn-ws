@@ -40,6 +40,34 @@ int vpn_ws_tuntap(char *name) {
 	return fd;
 }
 
+int vpn_ws_update_tuntap_mac(uint8_t *mac_updated) {
+	struct ifreq ifr;
+	if (mac_updated == NULL) {
+		return -1;
+	}
+	int fd = socket(AF_INET, SOCK_DGRAM, 0);
+	if (fd < 0) {
+		vpn_ws_error("vpn_ws_update_tuntap_mac()/socket()");
+		return -1;
+	}
+
+	memset(&ifr, 0, sizeof(struct ifreq));
+	strncpy(ifr.ifr_name, vpn_ws_conf.tuntap_name, IFNAMSIZ);
+
+	if (ioctl(fd, SIOCGIFHWADDR, &ifr) < 0) {
+		vpn_ws_error("vpn_ws_update_tuntap_mac()/ioctl()");
+		close(fd);
+		return -1;
+	}
+
+	// copy MAC address
+	memcpy(vpn_ws_conf.tuntap_mac, ifr.ifr_hwaddr.sa_data, 6);
+	memcpy(mac_updated, ifr.ifr_hwaddr.sa_data, 6);
+
+	close(fd);
+	return 0;
+}
+
 #elif defined(__WIN32__)
 
 #include <winioctl.h>
@@ -139,6 +167,10 @@ next:
 end:
 	RegCloseKey(adapter_key);
 	return NULL;
+}
+
+int vpn_ws_update_tuntap_mac(uint8_t *mac_updated) {
+	return 0;
 }
 
 #else
@@ -243,6 +275,10 @@ int vpn_ws_tuntap(char *name) {
 #endif
 
 	return fd;
+}
+
+int vpn_ws_update_tuntap_mac(uint8_t *mac_updated) {
+	return 0;
 }
 
 #endif

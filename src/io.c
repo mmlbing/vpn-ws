@@ -246,10 +246,33 @@ parsed:
 		// if the peer is a bridge, collect new macs
 		if (memcmp(peer->mac, mac+6, 6)) {
 			// if not a bridge discard packets
-			if (!peer->bridge) goto decapitate;
-			if (vpn_ws_bridge_collect_mac(peer, mac+6)) {
-				vpn_ws_peer_destroy(peer);
-				return -1;
+			if (!peer->bridge)
+			{
+				if (peer->raw)
+				{
+					// This might be a situation that the interfacce mac address changed
+					uint8_t mac_updated[6];
+					if (vpn_ws_update_tuntap_mac(mac_updated) < 0) {
+						goto decapitate;
+					}
+					memcpy(peer->mac, mac_updated, 6);
+					vpn_ws_log("Interface MAC address updated [%02X:%02X:%02X:%02X:%02X:%02X]",
+						peer->mac[0], peer->mac[1], peer->mac[2], peer->mac[3], peer->mac[4], peer->mac[5]);  
+					if (memcmp(peer->mac, mac+6, 6)) {
+						goto decapitate;
+					}
+				}
+				else
+				{
+					goto decapitate;
+				}
+			}
+			else
+			{
+				if (vpn_ws_bridge_collect_mac(peer, mac+6)) {
+					vpn_ws_peer_destroy(peer);
+					return -1;
+				}
 			}
 		}
 	}

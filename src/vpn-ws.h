@@ -152,6 +152,7 @@ int vpn_ws_event_read_to_write(int, vpn_ws_fd);
 int vpn_ws_event_write_to_read(int, vpn_ws_fd);
 
 vpn_ws_fd vpn_ws_tuntap(char *);
+int vpn_ws_update_tuntap_mac(uint8_t *);
 
 uint16_t vpn_ws_be16(uint8_t *);
 uint64_t vpn_ws_be64(uint8_t *);
