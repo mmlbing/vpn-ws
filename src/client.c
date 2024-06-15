@@ -435,6 +435,16 @@ int main(int argc, char *argv[]) {
 		if (vpn_ws_exec(vpn_ws_conf.exec)) {
 			vpn_ws_exit(1);
 		}
+		else {
+			// Update the interface MAC after interface up
+			uint8_t mac_updated[6];
+			if (vpn_ws_update_tuntap_mac(mac_updated) < 0) {
+				vpn_ws_exit(1);
+			}
+			memcpy(vpn_ws_conf.tuntap_mac, mac_updated, 6);
+			vpn_ws_log("Interface MAC address updated [%02X:%02X:%02X:%02X:%02X:%02X]",
+				vpn_ws_conf.tuntap_mac[0], vpn_ws_conf.tuntap_mac[1], vpn_ws_conf.tuntap_mac[2], vpn_ws_conf.tuntap_mac[3],vpn_ws_conf.tuntap_mac[4], vpn_ws_conf.tuntap_mac[5]); 
+		}
 	}
 
 	vpn_ws_peer *peer = NULL;
